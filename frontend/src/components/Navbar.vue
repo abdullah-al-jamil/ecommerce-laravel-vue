@@ -2,16 +2,19 @@
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useCartStore } from '@/stores/cart'
+import { useProductStore } from '@/stores/product'
 import { onMounted } from 'vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const cartStore = useCartStore()
+const productStore = useProductStore()
 
 onMounted(() => {
   if (authStore.isAuthenticated) {
     cartStore.fetchCart()
   }
+  productStore.fetchCategories()
 })
 
 async function handleLogout() {
@@ -30,9 +33,14 @@ async function handleLogout() {
             </RouterLink>
             <div class="hidden md:flex ml-10 space-x-8">
               <RouterLink to="/" class="text-gray-700 hover:text-indigo-600 px-3 py-2 font-medium">Home</RouterLink>
-              <RouterLink to="/category/electronics" class="text-gray-700 hover:text-indigo-600 px-3 py-2 font-medium">Electronics</RouterLink>
-              <RouterLink to="/category/clothing" class="text-gray-700 hover:text-indigo-600 px-3 py-2 font-medium">Clothing</RouterLink>
-              <RouterLink to="/category/home-garden" class="text-gray-700 hover:text-indigo-600 px-3 py-2 font-medium">Home & Garden</RouterLink>
+              <RouterLink
+                v-for="category in productStore.categories"
+                :key="category.id"
+                :to="{ name: 'category', params: { slug: category.slug } }"
+                class="text-gray-700 hover:text-indigo-600 px-3 py-2 font-medium capitalize"
+              >
+                {{ category.name }}
+              </RouterLink>
             </div>
           </div>
           <div class="flex items-center space-x-4">

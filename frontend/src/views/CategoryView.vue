@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/stores/product'
 import { useCartStore } from '@/stores/cart'
 import { useAuthStore } from '@/stores/auth'
-import { RouterLink } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,17 +11,37 @@ const productStore = useProductStore()
 const cartStore = useCartStore()
 const authStore = useAuthStore()
 
-onMounted(() => {
+async function loadProducts() {
   const slug = route.params.slug as string
-  productStore.fetchProducts({ search: slug.replace('-', ' ') })
-  productStore.fetchCategories()
-})
+
+  await productStore.fetchCategories()
+
+  const category = productStore.categories.find(
+    (c) => c.slug === slug
+  )
+
+  const categoryId = category?.id
+
+  productStore.fetchProducts({
+    ...(categoryId ? { category_id: categoryId } : {}),
+  })
+}
+
+onMounted(loadProducts)
+
+watch(
+  () => route.params.slug,
+  () => {
+    loadProducts()
+  }
+)
 
 async function addToCart(productId: number) {
   if (!authStore.isAuthenticated) {
     router.push('/login')
     return
   }
+
   await cartStore.addToCart(productId, 1)
 }
 </script>
@@ -40,7 +59,12 @@ async function addToCart(productId: number) {
           <h3 class="font-semibold text-gray-900 mb-4">Categories</h3>
           <div class="space-y-2">
             <RouterLink to="/" class="block text-gray-600 hover:text-indigo-600 py-1">All Products</RouterLink>
-            <RouterLink v-for="category in productStore.categories" :key="category.id" :to="`/category/${category.slug}`" class="block text-gray-600 hover:text-indigo-600 py-1 capitalize">
+            <RouterLink
+              v-for="category in productStore.categories"
+              :key="category.id"
+              :to="{ name: 'category', params: { slug: category.slug }, state: { categoryId: category.id } }"
+              class="block text-gray-600 hover:text-indigo-600 py-1 capitalize"
+            >
               {{ category.name }}
             </RouterLink>
           </div>
