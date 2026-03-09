@@ -84,7 +84,6 @@ async function addToCart(productId: number) {
               </div>
             </RouterLink>
             <div class="p-5">
-              <p class="text-sm text-indigo-600 font-medium">{{ product.category?.name }}</p>
               <RouterLink :to="`/products/${product.slug}`">
                 <h3 class="text-lg font-semibold text-gray-900 mt-1 hover:text-indigo-600">{{ product.name }}</h3>
               </RouterLink>
